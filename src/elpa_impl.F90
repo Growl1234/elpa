@@ -1644,7 +1644,7 @@ module elpa_impl
     !c> *  \param elpa_t handle
     !c> *  \param  char* name
     !c> */
-    !c> void elpa_timer_start(elpa_t handle, char* name);
+    !c> void elpa_timer_start(elpa_t handle, const char* name);
     subroutine elpa_timer_start_c(handle, name_p) bind(C, name="elpa_timer_start")
       type(c_ptr), value         :: handle
       type(elpa_impl_t), pointer :: self
@@ -1675,7 +1675,7 @@ module elpa_impl
     !c> *  \param elpa_t handle
     !c> *  \param  char* name
     !c> */
-    !c> void elpa_timer_stop(elpa_t handle, char* name);
+    !c> void elpa_timer_stop(elpa_t handle, const char* name);
     subroutine elpa_timer_stop_c(handle, name_p) bind(C, name="elpa_timer_stop")
       type(c_ptr), value         :: handle
       type(elpa_impl_t), pointer :: self
