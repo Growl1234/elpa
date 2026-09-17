@@ -217,40 +217,38 @@ if(ELPA_USE_MPI AND ELPA_SCALAPACK_VENDOR_RESOLVED STREQUAL "MKL")
   set(ELPA_BUILD_MKL_BLACS "${MKL_BLACS_ABI}")
 endif()
 
-# pkg-config cannot represent CMake imported targets. For static CPU builds,
-# record the concrete dependency libraries so `pkg-config --static` remains
-# useful to non-CMake consumers.
+# pkg-config cannot represent CMake imported targets. Record the concrete
+# dependencies needed when linking the static library.
 set(_elpa_pc_private_libraries)
 if(NOT BUILD_SHARED_LIBS)
-  if(ELPA_BLAS_VENDOR_RESOLVED STREQUAL "MKL")
-    list(APPEND _elpa_pc_private_libraries ${MKL_LINK_LIBRARIES})
-  else()
-    list(APPEND _elpa_pc_private_libraries ${BLAS_LIBRARIES}
-         ${LAPACK_LIBRARIES})
+  set(_elpa_pc_private_libraries ${LAPACK_LIBRARIES})
+  if(ELPA_BLAS_VENDOR_RESOLVED STREQUAL "CUSTOM")
+    list(APPEND _elpa_pc_private_libraries ${BLAS_LIBRARIES})
   endif()
 
   if(ELPA_USE_MPI)
     if(ELPA_SCALAPACK_VENDOR_RESOLVED STREQUAL "MKL")
-      list(APPEND _elpa_pc_private_libraries ${MKL_SCALAPACK_LINK_LIBRARIES})
+      set(_elpa_pc_private_libraries ${MKL_SCALAPACK_LINK_LIBRARIES})
     else()
-      list(APPEND _elpa_pc_private_libraries ${SCALAPACK_LIBRARIES}
-           ${MPI_C_LIBRARIES} ${MPI_Fortran_LIBRARIES})
+      list(PREPEND _elpa_pc_private_libraries ${SCALAPACK_LIBRARIES})
+      list(APPEND _elpa_pc_private_libraries ${MPI_Fortran_LIBRARIES})
     endif()
   endif()
+
   if(ELPA_USE_OPENMP)
-    list(APPEND _elpa_pc_private_libraries ${OpenMP_C_LIBRARIES}
-         ${OpenMP_CXX_LIBRARIES} ${OpenMP_Fortran_LIBRARIES})
+    set(_elpa_openmp_libraries ${OpenMP_C_LIBRARIES}
+                               ${OpenMP_Fortran_LIBRARIES})
+    list(REMOVE_DUPLICATES _elpa_openmp_libraries)
+    list(APPEND _elpa_pc_private_libraries ${_elpa_openmp_libraries})
   endif()
   if(ELPA_USE_PAPI)
     list(APPEND _elpa_pc_private_libraries "${PAPI_LIBRARY}")
   endif()
 
-  list(APPEND _elpa_pc_private_libraries
-       ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
-  if(ELPA_ACCELERATOR MATCHES "^(SYCL|IOMP_OFFLOAD)$")
-    list(APPEND _elpa_pc_private_libraries ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES})
-  endif()
-  list(REMOVE_ITEM _elpa_pc_private_libraries "")
+  set(_elpa_fortran_runtime ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
+  list(REMOVE_ITEM _elpa_fortran_runtime ${CMAKE_C_IMPLICIT_LINK_LIBRARIES})
+  list(REMOVE_DUPLICATES _elpa_fortran_runtime)
+  list(APPEND _elpa_pc_private_libraries ${_elpa_fortran_runtime})
 endif()
 
 set(ELPA_PC_PRIVATE_LIBS)
