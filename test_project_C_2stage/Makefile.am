@@ -2,9 +2,9 @@
 
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS} -I m4
 
-AM_FCFLAGS = @FC_MODINC@modules $(ELPA_FCFLAGS)
+AM_FCFLAGS = @FC_MODINC@modules $(ELPA_CFLAGS)
 AM_CFLAGS = $(ELPA_CFLAGS)
-AM_LDFLAGS = $(ELPA_LIBS)
+LDADD = $(ELPA_LIBS) $(SCALAPACK_LIBS)
 
 #bindir = $(abs_top_builddir)
 bin_PROGRAMS = test_real2

@@ -68,15 +68,18 @@ AC_ARG_WITH([openmp],
   if test x"${with_openmp}" = x"yes"; then
 	AC_DEFINE([WITH_OPENMP_TRADITIONAL], [1], [use OpenMP threading])
         AX_ELPA_OPENMP
-	elpa="elpa_openmp"
-  else
-	elpa="elpa"
+
   fi
 
 # Here comes the ELPA specific part
 PKG_PROG_PKG_CONFIG
-PKG_CHECK_MODULES([ELPA],[${elpa}],[],[AC_MSG_ERROR(["Need ${elpa}"])])
-PKG_CHECK_VAR([ELPA_FCFLAGS],[${elpa}],[fcflags])
+PKG_CHECK_MODULES([ELPA], [elpa])
+AC_ARG_VAR([SCALAPACK_LIBS], [ScaLAPACK/BLACS libraries used directly by this example])
+AS_IF([test -z "$SCALAPACK_LIBS"], [
+  PKG_CHECK_MODULES([SCALAPACK], [scalapack], [], [
+    AC_MSG_ERROR([Set SCALAPACK_LIBS to this example's ScaLAPACK/BLACS link line])
+  ])
+])
 
 LT_INIT
 

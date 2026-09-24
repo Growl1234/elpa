@@ -1,3 +1,8 @@
+> Autotools builds use the normalized installation and dependency interface
+> documented in [AUTOTOOLS.md](AUTOTOOLS.md). Feature-dependent library names,
+> versioned header directories and the private `fcflags` pkg-config variable
+> have been removed.
+
 # Installation guide for the *ELPA* library #
 
 ## 0. Preamble ##
@@ -51,22 +56,22 @@ An excerpt of the most important (*ELPA* specific) options reads as follows:
 |  `--disable-timings`                           | more detailed timing, default yes <br> **If disabled some features like autotune will <br> not work anymmore !** |
 |  `--disable-band-to-full-blocking`             | build ELPA2 with blocking in band_to_full <br> (default:enabled) |
 |  `--disable-mpi-module`                        | do not use the Fortran MPI module, <br> get interfaces by 'include "mpif.h') |
-|  `--disable-generic`                           | do not build GENERIC kernels, default: enabled        |
-|  `--enable-sparc64`                            | do not build SPARC64 kernels, default: disabled        |
-|  `--disable-sse`                               | do not build SSE kernels, default: enabled            |
-|  `--disable-sse-assembly`                      | do not build SSE_ASSEMBLY kernels, default: enabled   |
-|  `--disable-avx`                               | do not build AVX kernels, default: enabled            |
-|  `--disable-avx2`                              | do not build AVX2 kernels, default: enabled           |
-|  `--enable-avx512`                             | build AVX512 kernels, default: disabled               |
-|  `--enable-sve128`                             | Experimental feature build ARM SVE128 kernels, default: disabled               |
-|  `--enable-sve256`                             | Experimental feature build ARM SVE256 kernels, default: disabled               |
-|  `--enable-sve512`                             | Experimental feature build ARM SVE512 kernels, default: disabled               |
-|  `--enable-nvidia-gpu`                         | build NVIDIA GPU kernels, default: disabled           |
-|  `--enable-gpu`                                | same as --enable-nvidia-gpu                           |
-|  `--enable-amd-gpu`                            | EXPERIMENTAL: build AMD GPU kernels, default: disabled           |
+|  `--disable-generic-kernels`                           | do not build GENERIC kernels, default: enabled        |
+|  `--enable-sparc64-kernels`                            | do not build SPARC64 kernels, default: disabled        |
+|  `--disable-sse-kernels`                               | do not build SSE kernels, default: enabled            |
+|  `--disable-sse-assembly-kernels`                      | do not build SSE_ASSEMBLY kernels, default: enabled   |
+|  `--disable-avx-kernels`                               | do not build AVX kernels, default: enabled            |
+|  `--disable-avx2-kernels`                              | do not build AVX2 kernels, default: enabled           |
+|  `--enable-avx512-kernels`                             | build AVX512 kernels, default: disabled               |
+|  `--enable-sve128-kernels`                             | Experimental feature build ARM SVE128 kernels, default: disabled               |
+|  `--enable-sve256-kernels`                             | Experimental feature build ARM SVE256 kernels, default: disabled               |
+|  `--enable-sve512-kernels`                             | Experimental feature build ARM SVE512 kernels, default: disabled               |
+|  `--enable-nvidia-gpu-kernels`                         | build NVIDIA GPU kernels, default: disabled           |
+|  `--enable-gpu`                                | same as --enable-nvidia-gpu-kernels                           |
+|  `--enable-amd-gpu-kernels`                            | EXPERIMENTAL: build AMD GPU kernels, default: disabled           |
 |  `--enable-intel-gpu`                          | VERY EXPERIMENTAL: build INTEL GPU kernels, default: disabled           |
-|  `--enable-bgp`                                | build BGP kernels, default: disabled                  |
-|  `--enable-bgq`                                | build BGQ kernels, default: disabled                  |
+|  `--enable-bgp-kernels`                                | build BGP kernels, default: disabled                  |
+|  `--enable-bgq-kernels`                                | build BGQ kernels, default: disabled                  |
 |  `--with-mpi=[yes|no]`                         | compile with MPI. Default: yes                        |
 |  `--with-cuda-path=PATH`                       | prefix where CUDA is installed [default=auto]         |
 |  `--with-cuda-sdk-path=PATH`                   | prefix where CUDA SDK is installed [default=auto]     |
@@ -90,7 +95,7 @@ An excerpt of the most important (*ELPA* specific) options reads as follows:
 |  `--enable-python-tests`                       | enable python tests, default no.                      |
 |  `--enable-skew-symmetric-support`             | enable support for real valued skew-symmetric matrices |
 |  `--enable-store-build-config`                 | stores the build config in the library object |
-|  `--64bit-integer-math-support`                | assumes that BLAS/LAPACK/SCALAPACK use 64bit integers (experimentatl) |
+|  `--with-blas-interface=ilp64`                | assumes that BLAS/LAPACK/SCALAPACK use 64bit integers (experimentatl) |
 |  `--64bit-integer-mpi-support`                 | assumes that MPI uses 64bit integers (experimental) |
 |  `--heterogenous-cluster-support`              | allows ELPA to run on clusters of nodes with different Intel CPUs (experimental) |
 |  `--enable-allow-thread-limiting`              | in case of MPI and OPENMP builds, ELPA is allowed to limit the number of OpenMP threads, if the threading support level is not sufficient (default: on) |
@@ -139,8 +144,9 @@ For builds without MPI support, please have a look at "2.1.2 Building *ELPA* wit
 **NOTE** that if *ELPA* is build without MPI support, it will be serial unless the OpenMP parallelization is
 explicitely enabled or GPU support is enabled.
 
-Please note, that it is absolutely supported that both versions of the *ELPA* library are build
-and installed in the same directory.
+MPI and non-MPI configurations must use separate installation prefixes (or fully
+isolated dependency-stack hierarchies). They share the same `libelpa` name; ELPA
+does not install configuration-suffixed variants into one prefix.
 
 #### 2.1.1 Setting of MPI compiler and libraries ####
 
@@ -184,8 +190,8 @@ configure FC=gfortran --with-mpi=no
 
 **DO NOT specify a MPI compiler here!**
 
-Note, that the installed *ELPA* library files will be suffixed with
-`_onenode`, in order to discriminate this build from possible ones with MPI.
+The installed library is always `libelpa`, with or without MPI/OpenMP.
+Install another configuration under a different prefix; see [the installation contract](AUTOTOOLS.md).
 
 
 Please continue reading at "2.2 Enabling GPU support"
@@ -200,7 +206,7 @@ For GPU support, NVIDIA GPUs with compute capability >= 3.5 are needed.
 GPU support is set with
 
 ```
---enable-nvidia-gpu
+--enable-nvidia-gpu-kernels
 ```
 
 It might be necessary to also set the options (please see configure --help)
@@ -347,48 +353,38 @@ If your configure steps finish succcessfully, please continue at "2.5 Choice of 
 If your configure step aborts, or you want to use libraries in non standard paths please continue at
 "2.4 Non standard paths or non standard libraries".
 
-### 2.4 Non standard paths or non standard libraries ###
+### 2.4 Selecting the math provider
 
-If standard libraries are on the build system either installed in non standard paths, or
-special non standard libraries (e.g. *Intel's MKL*) should be used, it might be necessary
-to specify the appropriate link-line with the **SCALAPACK_LDFLAGS** and **SCALAPACK_FCFLAGS**
-variables.
+Select the implementation, rather than constructing a global compiler/linker flag string:
 
-For example, due to performance reasons it might be benefical to use the *BLAS*, *BLACS*, *LAPACK*,
-and *SCALAPACK* implementation from *Intel's MKL* library.
-
-Together with the Intel Fortran Compiler the call to configure might then look like:
-
-```
-configure SCALAPACK_LDFLAGS="-L$MKL_HOME/lib/intel64 -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_sequential \
-                             -lmkl_core -lmkl_blacs_intelmpi_lp64 -lpthread -lm -Wl,-rpath,$MKL_HOME/lib/intel64" \
-	  SCALAPACK_FCFLAGS="-L$MKL_HOME/lib/intel64 -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_sequential \
-	                      -lmkl_core -lmkl_blacs_intelmpi_lp64 -lpthread -lm -I$MKL_HOME/include/intel64/lp64"
+```sh
+../configure --with-blas=mkl --with-scalapack=mkl --with-mkl-root="$MKLROOT"
+../configure --with-blas=openblas --with-scalapack=generic
+../configure --with-blas=flexiblas --with-scalapack=generic
 ```
 
-and for *INTEL MKL* together with *GNU GFORTRAN* :
+The default is LP64 with sequential MKL threading. MKL BLACS is selected from the
+active MPI implementation's headers; unknown implementations require an explicit
+`--with-mkl-blacs` choice. `--with-mkl-link=static` selects static MKL independently
+of whether ELPA itself is shared or static.
 
-```
-configure SCALAPACK_LDFLAGS="-L$MKL_HOME/lib/intel64 -lmkl_scalapack_lp64 -lmkl_gf_lp64 -lmkl_sequential \
-                             -lmkl_core -lmkl_blacs_intelmpi_lp64 -lpthread -lm -Wl,-rpath,$MKL_HOME/lib/intel64" \
-	  SCALAPACK_FCFLAGS="-L$MKL_HOME/lib/intel64 -lmkl_scalapack_lp64 -lmkl_gf_lp64 -lmkl_sequential \
-	                     -lmkl_core -lmkl_blacs_intelmpi_lp64 -lpthread -lm -I$MKL_HOME/include/intel64/lp64"
-```
-
-Please, for the correct link-line refer to the documentation of the correspondig library. In case of *Intel's MKL* we
-suggest the [Intel Math Kernel Library Link Line Advisor](https://software.intel.com/en-us/articles/intel-mkl-link-line-advisor).
-
+For a nonstandard open-source installation, expose its metadata with
+`PKG_CONFIG_PATH`. Custom implementations can supply `BLAS_LIBS`, `LAPACK_LIBS`
+and `SCALAPACK_LIBS`; use `MATH_CFLAGS` only for dependency-local includes/defines.
+`SCALAPACK_LDFLAGS` and `SCALAPACK_FCFLAGS` are no longer accepted.
+See [Autotools configuration and migration](AUTOTOOLS.md) for details and examples.
 
 ### 2.5 Choice of ELPA2 compute kernels ###
 
 ELPA 2stage can be used with different implementations of compute intensive kernels, which are architecture dependent.
-Some kernels (all for x86_64 architectures) are enabled by default (and must be disabled if you do not want them),
-others are disabled by default and must be enabled if they are wanted.
+The x86 families are enabled by default only for an x86-64 target. Other optional
+families must be enabled explicitly. `--with-cpu-kernels=generic` disables all
+non-generic CPU families. Kernel-specific ISA flags are scoped to kernel objects.
 
 One can enable "kernel classes" by setting e.g.
 
 ```
---enable-avx2 
+--enable-avx2-kernels
 ```
 
 This will try to build all the AVX2 kernels. Please see configure --help for all options
@@ -396,7 +392,7 @@ This will try to build all the AVX2 kernels. Please see configure --help for all
 With
 
 ```
---disable-avx2
+--disable-avx2-kernels
 ```
 
 one chan choose not to build the AVX2 kernels.
@@ -445,7 +441,7 @@ One can avoid this unfortunate situation by disabling instructions set which are
 In the case above, setting
 
 ```
---disable-avx2
+--disable-avx2-kernels
 ```
 
 during build, will remdy this problem.
@@ -456,151 +452,54 @@ A doxygen documentation can be created with the `--enable-doxygen-doc` configure
 
 ### 2.7 Some examples ###
 
-#### 2.7.1 Intel cores supporting AVX2 (Haswell and newer) ####
+#### 2.7.1 CPU builds with MKL
 
-We recommend that you build ELPA with the Intel compiler (if available) for the Fortran part, but
-with GNU compiler for the C part.
+After loading a consistent compiler, MPI and MKL environment:
 
-1. Building with Intel Fortran compiler and GNU C compiler:
-
-Remarks:
-  - you have to know the name of the Intel Fortran compiler wrapper
-  - you do not have to specify a C compiler (with CC); GNU C compiler is recognized automatically
-  - you should specify compiler flags for Intel Fortran compiler; in the example only `-O3 -xAVX2` is set
-  - you should be careful with the CFLAGS, the example shows typical flags
-
-```
-FC=mpi_wrapper_for_intel_Fortran_compiler CC=mpi_wrapper_for_gnu_C_compiler ./configure FCFLAGS="-O3 -xAVX2" CFLAGS="-O3 -march=native -mavx2 -mfma -funsafe-loop-optimizations -funsafe-math-optimizations -ftree-vect-loop-version -ftree-vectorize" --enable-option-checking=fatal SCALAPACK_LDFLAGS="-L$MKLROOT/lib/intel64 -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_blacs_intelmpi_lp64 -lpthread " SCALAPACK_FCFLAGS="-I$MKL_HOME/include/intel64/lp64"
+```sh
+mkdir build && cd build
+../configure --prefix=/path/to/elpa --with-blas=mkl --with-scalapack=mkl \
+  --disable-avx512-kernels
+make -j
+make install
 ```
 
-2. Building with GNU Fortran compiler and GNU C compiler:
+For an AVX-512 deployment, omit `--disable-avx512-kernels`. ISA options are
+attached only to the corresponding kernel objects, not to the whole library.
+Compiling a kernel does not establish that it can run on every deployment node.
+Use `--with-cpu-kernels=generic` for a generic-only build, or choose the kernel
+families and default kernels appropriate to the deployment.
 
-Remarks: 
-  - you have to know the name of the GNU Fortran compiler wrapper
-  - you DO have to specify a C compiler (with CC); GNU C compiler is recognized automatically
-  - you should specify compiler flags for GNU Fortran compiler; in the example only `-O3 -march=native -mavx2 -mfma` is set
-  - you should be careful with the CFLAGS, the example shows typical flags
+For OpenMP, add `--enable-openmp`; to use GNU-threaded MKL as well, add
+`--with-mkl-threading=gnu`. ELPA threading and MKL threading are independent.
 
-```
-FC=mpi_wrapper_for_gnu_Fortran_compiler CC=mpi_wrapper_for_gnu_C_compiler ./configure FCFLAGS="-O3 -march=native -mavx2 -mfma" CFLAGS="-O3 -march=native -mavx2 -mfma  -funsafe-loop-optimizations -funsafe-math-optimizations -ftree-vect-loop-version -ftree-vectorize" --enable-option-checking=fatal SCALAPACK_LDFLAGS="-L$MKLROOT/lib/intel64 -lmkl_scalapack_lp64 -lmkl_gf_lp64 -lmkl_sequential -lmkl_core -lmkl_blacs_intelmpi_lp64 -lpthread " SCALAPACK_FCFLAGS="-I$MKL_HOME/include/intel64/lp64"
-```
+#### 2.7.2 Accelerator builds
 
-3. Building with Intel Fortran compiler and Intel C compiler:
+The accelerator-specific options and SDK requirements are unchanged. Select the
+host math provider using the same `--with-blas`/`--with-scalapack` interface.
+CUDA, HIP, SYCL and OpenMP-offload setup remains independent of this CPU math
+provider refactor. Site-specific accelerator link flags may still be necessary.
 
-Remarks:
-  - you have to know the name of the Intel Fortran compiler wrapper
-  - you have to specify the Intel C compiler
-  - you should specify compiler flags for Intel Fortran compiler; in the example only "-O3 -xAVX2" is set
-  - you should be careful with the CFLAGS, the example shows typical flags
+#### 2.7.3 Custom vendor math stacks
 
-```
-FC=mpi_wrapper_for_intel_Fortran_compiler CC=mpi_wrapper_for_intel_C_compiler ./configure FCFLAGS="-O3 -xAVX2" CFLAGS="-O3 -xAVX2" --enable-option-checking=fatal SCALAPACK_LDFLAGS="-L$MKLROOT/lib/intel64 -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_blacs_intelmpi_lp64 -lpthread " SCALAPACK_FCFLAGS="-I$MKL_HOME/include/intel64/lp64"
-```
+A site-provided ESSL/Netlib stack, for example, can use the custom provider
+interface. Select the matching compiler/MPI environment first and adjust the
+library directories to the site installation:
 
-#### 2.7.2 Intel cores supporting AVX-512 (Skylake and newer) ####
-
-We recommend that you build ELPA with the Intel compiler (if available) for the Fortran part, but
-with GNU compiler for the C part.
-
-1. Building with Intel Fortran compiler and GNU C compiler:
-
-Remarks:
-  - you have to know the name of the Intel Fortran compiler wrapper
-  - you do not have to specify a C compiler (with CC); GNU C compiler is recognized automatically
-  - you should specify compiler flags for Intel Fortran compiler; in the example only `-O3 -xCORE-AVX512` is set
-  - you should be careful with the CFLAGS, the example shows typical flags
-
-```
-FC=mpi_wrapper_for_intel_Fortran_compiler CC=mpi_wrapper_for_gnu_C_compiler ./configure FCFLAGS="-O3 -xCORE-AVX512" CFLAGS="-O3 -march=skylake-avx512 -mfma -funsafe-loop-optimizations -funsafe-math-optimizations -ftree-vect-loop-version -ftree-vectorize" --enable-option-checking=fatal SCALAPACK_LDFLAGS="-L$MKLROOT/lib/intel64 -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_blacs_intelmpi_lp64 -lpthread " SCALAPACK_FCFLAGS="-I$MKL_HOME/include/intel64/lp64" --enable-avx2 --enable-avx512
+```sh
+../configure --with-blas=custom --with-scalapack=custom \
+  BLAS_LIBS="-L${OLCF_ESSL_ROOT}/lib64 -lessl" \
+  LAPACK_LIBS="-L${OLCF_NETLIB_LAPACK_ROOT}/lib64 -llapack" \
+  SCALAPACK_LIBS="-L${OLCF_NETLIB_SCALAPACK_ROOT}/lib -lscalapack" \
+  --with-cpu-kernels=generic
 ```
 
-2. Building with GNU Fortran compiler and GNU C compiler:
+This illustrates dependency selection, not a validated recipe for a particular
+machine or compiler. Accelerator SDK and compiler options remain separate from
+these host math libraries. Historical site examples that put math libraries in
+`FCFLAGS` or `LDFLAGS` should migrate to this interface.
 
-Remarks: 
-  - you have to know the name of the GNU Fortran compiler wrapper
-  - you DO have to specify a C compiler (with CC); GNU C compiler is recognized automatically
-  - you should specify compiler flags for GNU Fortran compiler; in the example only `-O3 -march=skylake-avx512 -mfma` is set
-  - you should be careful with the CFLAGS, the example shows typical flags
-
-```
-FC=mpi_wrapper_for_gnu_Fortran_compiler CC=mpi_wrapper_for_gnu_C_compiler ./configure FCFLAGS="-O3 -march=skylake-avx512 -mfma" CFLAGS="-O3 -march=skylake-avx512 -mfma  -funsafe-loop-optimizations -funsafe-math-optimizations -ftree-vect-loop-version -ftree-vectorize" --enable-option-checking=fatal SCALAPACK_LDFLAGS="-L$MKLROOT/lib/intel64 -lmkl_scalapack_lp64 -lmkl_gf_lp64 -lmkl_sequential -lmkl_core -lmkl_blacs_intelmpi_lp64 -lpthread " SCALAPACK_FCFLAGS="-I$MKL_HOME/include/intel64/lp64" --enable-avx2 --enable-avx512
-```
-
-3. Building with Intel Fortran compiler and Intel C compiler:
-
-Remarks:
-  - you have to know the name of the Intel Fortran compiler wrapper
-  - you have to specify the Intel C compiler
-  - you should specify compiler flags for Intel Fortran compiler; in the example only "-O3 -xCORE-AVX512" is set
-  - you should be careful with the CFLAGS, the example shows typical flags
-
-```
-FC=mpi_wrapper_for_intel_Fortran_compiler CC=mpi_wrapper_for_intel_C_compiler ./configure FCFLAGS="-O3 -xCORE-AVX512" CFLAGS="-O3 -xCORE-AVX512" --enable-option-checking=fatal SCALAPACK_LDFLAGS="-L$MKLROOT/lib/intel64 -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_blacs_intelmpi_lp64 -lpthread " SCALAPACK_FCFLAGS="-I$MKL_HOME/include/intel64/lp64" --enable-avx2 --enable-avx512
-```
-
-
-#### 2.7.3 Building for NVIDIA A100 GPUS (and Intel Icelake CPUs) ####
-
-For the GPU builds of ELPA it is mandatory that you choose a GNU compiler for the C part, the Fortran part can be compiled with any compiler, for example with the Intel Fortran compiler
-
-1. Building with Intel Fortran compiler and GNU C compiler:
-
-Remarks:
-  - you have to know the name of the Intel Fortran compiler wrapper
-  - you do not have to specify a C compiler (with CC); GNU C compiler is recognized automatically
-  - you should specify compiler flags for Intel Fortran compiler; in the example only `-O3 -xCORE-AVX512` is set
-  - you should be careful with the CFLAGS, the example shows typical flags
-
-```
-FC=mpi_wrapper_for_intel_Fortran_compiler CC=mpi_wrapper_for_gnu_C_compiler ./configure FCFLAGS="-O3 -xCORE-AVX512" CFLAGS="-O3 -march=skylake-avx512 -mfma -funsafe-loop-optimizations -funsafe-math-optimizations -ftree-vect-loop-version -ftree-vectorize" --enable-option-checking=fatal SCALAPACK_LDFLAGS="-L$MKLROOT/lib/intel64 -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_blacs_intelmpi_lp64 -lpthread " SCALAPACK_FCFLAGS="-I$MKL_HOME/include/intel64/lp64" --enable-avx2 --enable-avx512 --enable-nvidia-gpu --with-cuda-path=PATH_TO_YOUR_CUDA_INSTALLATION --with-NVIDIA-GPU-compute-capability=sm_80
-```
-
-2. Building with GNU Fortran compiler and GNU C compiler:
-
-Remarks: 
-  - you have to know the name of the GNU Fortran compiler wrapper
-  - you DO have to specify a C compiler (with CC); GNU C compiler is recognized automatically
-  - you should specify compiler flags for GNU Fortran compiler; in the example only `-O3 -march=skylake-avx512 -mfma` is set
-  - you should be careful with the CFLAGS, the example shows typical flags
-
-```
-FC=mpi_wrapper_for_gnu_Fortran_compiler CC=mpi_wrapper_for_gnu_C_compiler ./configure FCFLAGS="-O3 -march=skylake-avx512 -mfma" CFLAGS="-O3 -march=skylake-avx512 -mfma  -funsafe-loop-optimizations -funsafe-math-optimizations -ftree-vect-loop-version -ftree-vectorize" --enable-option-checking=fatal SCALAPACK_LDFLAGS="-L$MKLROOT/lib/intel64 -lmkl_scalapack_lp64 -lmkl_gf_lp64 -lmkl_sequential -lmkl_core -lmkl_blacs_intelmpi_lp64 -lpthread " SCALAPACK_FCFLAGS="-I$MKL_HOME/include/intel64/lp64" --enable-avx2 --enable-avx512 --enable-nvidia-gpu --with-cuda-path=PATH_TO_YOUR_CUDA_INSTALLATION --with-NVIDIA-GPU-compute-capability=sm_80
-```
-
-#### 2.7.4 Building for IBM SUMMIT HPC system ####
-
-For more information please have  a look at the [ELSI wiki](https://git.elsi-interchange.org/elsi-devel/elsi-interface/-/wikis/install-elpa).
-
-1. Building with GNU Fortran compiler and GNU C compiler:
-
-```
-FC=mpif90 CC=mpicc ./configure --prefix=$(pwd) CFLAGS="-O2 -mcpu=power9" CFLAGS="-O2 -mcpu=power9" CPP="cpp -E" LDFLAGS="-L${OLCF_NETLIB_SCALAPACK_ROOT}/lib -lscalapack -L${OLCF_ESSL_ROOT}/lib64 -lessl -L${OLCF_NETLIB_LAPACK_ROOT}/lib64 -llapack" --enable-gpu --with-cuda-path=${OLCF_CUDA_ROOT} --with-GPU-compute-capability=sm_70 --disable-sse-assembly --disable-sse --disable-avx --disable-avx2 --disable-avx512 --enable-c-tests=no
-```
-
-
-2. Building with PGI Fortran compiler and PGI C compiler:
-
-```
-FC=mpif90 CC=mpicc ./configure --prefix=$(pwd) CFLAGS="-fast -tp=pwr9" CFLAGS="-fast -tp=pwr9" CPP="cpp -E" LDFLAGS="-L${OLCF_NETLIB_SCALAPACK_ROOT}/lib -lscalapack -L${OLCF_ESSL_ROOT}/lib64 -lessl -L${OLCF_NETLIB_LAPACK_ROOT}/lib64 -llapack" --enable-gpu --with-cuda-path=${OLCF_CUDA_ROOT} --with-GPU-compute-capability=sm_70 --disable-sse-assembly --disable-sse --disable-avx --disable-avx2 --disable-avx512 --enable-c-tests=no
-```
-
-3. Building with IBM Fortran compiler and IBM C compiler:
-
-```
-FC=mpixlf CC=mpixlc ../configure --prefix=$(pwd) FCFLAGS="-O2 -qarch=pwr9 -qstrict -WF,-qfpp=linecont" CFLAGS="-O2 -qarch=pwr9 -qstrict" CPP="cpp -E" LDFLAGS="-L${OLCF_NETLIB_SCALAPACK_ROOT}/lib -lscalapack -L${OLCF_ESSL_ROOT}/lib64 -lessl -L${OLCF_NETLIB_LAPACK_ROOT}/lib64 -llapack" --enable-gpu --with-cuda-path=${OLCF_CUDA_ROOT} --with-GPU-compute-capability=sm_70 --disable-sse-assembly --disable-sse --disable-avx --disable-avx2 --disable-avx512 --enable-c-tests=no
-```
-
-
-#### 2.7.5 EXPERIMENTAL: Building for AMD GPUs (currently tested only --with-mpi=0 ####
-
-
-In order to build *ELPA* for AMD GPUs please ensure that you have a working installation of HIP, ROCm, BLAS, and LAPACK
-
-```
-./configure CXX=hipcc CXXFLAGS="-I/opt/rocm-4.0.0/hip/include/ -I/opt/rocm-4.0.0/rocblas/inlcude -g" CC=hipcc CFLAGS="-I/opt/rocm-4.0.0/hip/include/ -I/opt/rocm-4.0.0/rocblas/include -g" LIBS="-L/opt/rocm-4.0.0/rocblas/lib" --enable-option-checking=fatal --with-mpi=0 FC=gfortran FCFLAGS="-g -LPATH_TO_YOUR_LAPACK_INSTALLATION -lopenblas -llapack" --disable-sse --disable-sse-assembly --disable-avx --disable-avx2 --disable-avx512 --enable-AMD-gpu --enable-single-precision
-```
-
-#### 2.7.8 Problems of building with clang-12.0 ####
+#### 2.7.4 Historical libtool/clang-12.0 workaround ####
 The libtool tool adds some flags to the compiler commands (to be used for linking by ld) which are not known
 by the clang-12 compiler. One way to solve this issue is by calling directly after the configue step
 ```

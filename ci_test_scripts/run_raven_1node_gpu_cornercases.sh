@@ -27,10 +27,11 @@ runner_path=$(pwd)
 export LD_LIBRARY_PATH=$(pwd)/.libs:$LD_LIBRARY_PATH
 
 ../configure --enable-option-checking=fatal CC=mpicc FC=mpif90 CXX=mpicxx \
-CFLAGS="-O3 -g -march=skylake-avx512 -I$MKL_HOME/include/intel64/lp64 -I$CUDA_HOME/include" \
-CXXFLAGS="-std=c++17 -O3 -march=skylake-avx512 -I$MKL_HOME/include/intel64/lp64 -I$CUDA_HOME/include" \
-FCFLAGS="-O3 -g -march=skylake-avx512 -I$MKL_HOME/include/intel64/lp64 -I$CUDA_HOME/include" \
-LDFLAGS="-L$MKL_HOME/lib/intel64 -lmkl_scalapack_lp64 -lmkl_gf_lp64 -lmkl_sequential -lmkl_core -lmkl_blacs_openmpi_lp64 -lpthread -Wl,-rpath,$MKL_HOME/lib/intel64" \
+CFLAGS="-O3 -g -march=skylake-avx512 -I$CUDA_HOME/include" \
+CXXFLAGS="-std=c++17 -O3 -march=skylake-avx512 -I$CUDA_HOME/include" \
+FCFLAGS="-O3 -g -march=skylake-avx512 -I$CUDA_HOME/include" \
+LDFLAGS="-Wl,-rpath,$MKL_HOME/lib/intel64" \
+ --with-blas=mkl --with-scalapack=mkl --with-mkl-root="$MKL_HOME" \
  --with-mpi=yes --enable-band-to-full-blocking --disable-assumed-size --enable-avx512-kernels \
  --enable-nvidia-gpu-kernels --with-NVIDIA-GPU-compute-capability=sm_80 --with-cuda-path=$CUDA_HOME --enable-gpu-ccl=nccl --with-nccl-path=$NCCL_HOME NVCCFLAGS="-lineinfo" \
  --enable-c-tests=no --enable-cpp-tests=no --enable-single-precision=no --with-test-programs=all

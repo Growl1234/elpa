@@ -44,7 +44,7 @@ export ELPA_EXTRA_gpu_sycl_backend=2 # SYCL Backend to use: 0 = Level Zero, 1 = 
 export ONEAPI_DEVICE_SELECTOR="*:cpu"
 sycl-ls
 
-../configure --enable-option-checking=fatal FC=mpiifx CC=mpiicx CXX=mpiicpx CFLAGS="-O3 -g -xCORE-AVX512" CXXFLAGS="-O3 -g -xCORE-AVX512 -fsycl -I${INTEL_HOME}/compiler/latest/include -I${MKL_HOME}/include" FCFLAGS="-O3 -g -xCORE-AVX512" LIBS="-L${INTEL_HOME}/compiler/latest/lib -lsycl -Wl,-rpath,${INTEL_HOME}/compiler/latest/lib" SCALAPACK_FCFLAGS="-I${MKL_HOME}/include/intel64/lp64 -fsycl" SCALAPACK_LDFLAGS="-fsycl -Wc,-fsycl -L${MKL_HOME}/lib/intel64 -lmkl_sycl -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_blacs_intelmpi_lp64 -lsycl -lOpenCL -lpthread -lm -ldl -lirng -lstdc++ -Wl,-rpath,${MKL_HOME}/lib/intel64" --enable-ifx-compiler --enable-single-precision=no --with-mpi=yes --enable-avx512 --enable-intel-gpu-sycl-kernels --enable-intel-gpu-backend=sycl --disable-cpp-tests
+../configure --enable-option-checking=fatal FC=mpiifx CC=mpiicx CXX=mpiicpx CFLAGS="-O3 -g -xCORE-AVX512" CXXFLAGS="-O3 -g -xCORE-AVX512 -fsycl -I${INTEL_HOME}/compiler/latest/include -I${MKL_HOME}/include" FCFLAGS="-O3 -g -xCORE-AVX512" LIBS="-L${MKL_HOME}/lib/intel64 -lmkl_sycl -L${INTEL_HOME}/compiler/latest/lib -lsycl -lOpenCL -lirng -lstdc++ -Wl,-rpath,${INTEL_HOME}/compiler/latest/lib" --with-blas=mkl --with-scalapack=mkl --with-mkl-root="${MKL_HOME}" --enable-ifx-compiler --enable-single-precision=no --with-mpi=yes --enable-avx512-kernels --enable-intel-gpu-sycl-kernels --enable-intel-gpu-backend=sycl --disable-cpp-tests
 
 make -j 72
 

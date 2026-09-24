@@ -2,8 +2,10 @@
 
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS} -I m4
 
-AM_FCFLAGS = $(SCALAPACK_FCFLAGS) $(FC_MODINC)modules
-AM_LDFLAGS = $(SCALAPACK_LDFLAGS)
+AM_CPPFLAGS = $(ELPA_MATH_CFLAGS)
+
+AM_FCFLAGS = $(ELPA_MATH_CFLAGS) $(FC_MODINC)modules
+AM_LDFLAGS =
 if WITH_SYCL_GPU_VERSION
 AM_LDFLAGS2 = $(LDFLAGS)
 AM_ARFLAGS = 'qc'
@@ -18,23 +20,23 @@ endif
 FCLD = @ACTUAL_FC@
 
 # libelpa
-lib_LTLIBRARIES = libelpa@SUFFIX@.la
-libelpa@SUFFIX@_la_LINK = $(FCLINK) $(AM_LDFLAGS) -version-info $(ELPA_SO_VERSION)
-libelpa@SUFFIX@_la_LIBADD = libelpa@SUFFIX@_public.la libelpa@SUFFIX@_private.la
-libelpa@SUFFIX@_la_SOURCES =
+lib_LTLIBRARIES = libelpa.la
+libelpa_la_LINK = $(FCLINK) -version-info $(ELPA_SO_VERSION)
+libelpa_la_LIBADD = libelpa_public.la libelpa_private.la $(ELPA_MATH_LIBS)
+libelpa_la_SOURCES =
 
 # parts with public interface
-noinst_LTLIBRARIES = libelpa@SUFFIX@_public.la
-libelpa@SUFFIX@_public_la_FCFLAGS = $(AM_FCFLAGS) $(FC_MODOUT)modules $(FC_MODINC)private_modules
-libelpa@SUFFIX@_public_la_SOURCES = \
+noinst_LTLIBRARIES = libelpa_public.la
+libelpa_public_la_FCFLAGS = $(AM_FCFLAGS) $(FC_MODOUT)modules $(FC_MODINC)private_modules
+libelpa_public_la_SOURCES = \
   src/elpa.F90 \
   src/elpa_api.F90 \
   src/elpa_constants.F90
 
 # internal parts
-noinst_LTLIBRARIES += libelpa@SUFFIX@_private.la
-libelpa@SUFFIX@_private_la_FCFLAGS = $(AM_FCFLAGS) $(FC_MODOUT)private_modules $(FC_MODINC)private_modules
-libelpa@SUFFIX@_private_la_SOURCES = \
+noinst_LTLIBRARIES += libelpa_private.la
+libelpa_private_la_FCFLAGS = $(AM_FCFLAGS) $(FC_MODOUT)private_modules $(FC_MODINC)private_modules
+libelpa_private_la_SOURCES = \
   elpa/elpa_explicit_name.c \
   src/elpa_impl.F90 \
   src/elpa_autotune_impl.F90 \
@@ -138,16 +140,16 @@ libelpa@SUFFIX@_private_la_SOURCES = \
   src/elpa_index.c
 
 if HAVE_AFFINITY_CHECKING
-libelpa@SUFFIX@_private_la_SOURCES += src/helpers/mod_thread_affinity.F90 src/helpers/check_thread_affinity.c
+libelpa_private_la_SOURCES += src/helpers/mod_thread_affinity.F90 src/helpers/check_thread_affinity.c
 endif
 
-libelpa@SUFFIX@_private_la_SOURCES += src/elpa_c_interface.c
+libelpa_private_la_SOURCES += src/elpa_c_interface.c
 
 
-libelpa@SUFFIX@_private_la_SOURCES += \
+libelpa_private_la_SOURCES += \
   src/general/elpa_utilities.F90
 
-EXTRA_libelpa@SUFFIX@_private_la_DEPENDENCIES = \
+EXTRA_libelpa_private_la_DEPENDENCIES = \
   src/elpa1/elpa_reduce_add_vectors_template.F90 \
   src/elpa1/elpa_transpose_vectors_template.F90 \
   src/elpa1/GPU/elpa_gpu_ccl_transpose_vectors_template.F90 \
@@ -231,7 +233,7 @@ EXTRA_libelpa@SUFFIX@_private_la_DEPENDENCIES = \
   src/general/precision_kinds.F90
 
 if HAVE_DETAILED_TIMINGS
-libelpa@SUFFIX@_private_la_SOURCES += \
+libelpa_private_la_SOURCES += \
   src/ftimings/ftimings.F90 \
   src/ftimings/ftimings_type.F90 \
   src/ftimings/ftimings_value.F90 \
@@ -242,12 +244,12 @@ libelpa@SUFFIX@_private_la_SOURCES += \
   src/ftimings/papi.c
 
 else
-libelpa@SUFFIX@_private_la_SOURCES += \
+libelpa_private_la_SOURCES += \
   src/helpers/timer_dummy.F90
 endif
 
 if WITH_NVIDIA_GPU_VERSION
-  libelpa@SUFFIX@_private_la_SOURCES += \
+  libelpa_private_la_SOURCES += \
   src/GPU/CUDA/elpa_index_nvidia_gpu.cu \
   src/GPU/CUDA/elpa_explicit_name_nvidia_gpu.cu \
   src/GPU/CUDA/cudaFunctions.cu \
@@ -269,16 +271,16 @@ if WITH_NVIDIA_GPU_VERSION
 endif
 
 if WITH_NVIDIA_GPU_SM80_COMPUTE_CAPABILITY
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/GPU/CUDA/ev_tridi_band_nvidia_gpu_real_sm80.cu src/elpa2/GPU/CUDA/mma_m8n8k4_fp64_sm80.cuh
+  libelpa_private_la_SOURCES += src/elpa2/GPU/CUDA/ev_tridi_band_nvidia_gpu_real_sm80.cu src/elpa2/GPU/CUDA/mma_m8n8k4_fp64_sm80.cuh
 endif
 
 if WITH_NVIDIA_NCCL
-  libelpa@SUFFIX@_private_la_SOURCES += src/GPU/CUDA/ncclFunctions.cpp
+  libelpa_private_la_SOURCES += src/GPU/CUDA/ncclFunctions.cpp
 endif
 
 
 if WITH_AMD_GPU_VERSION
-  libelpa@SUFFIX@_private_la_SOURCES += \
+  libelpa_private_la_SOURCES += \
   src/GPU/ROCm/elpa_index_amd_gpu.hip  \
   src/GPU/ROCm/elpa_explicit_name_amd_gpu.hip \
   src/GPU/ROCm/rocmFunctions.hip \
@@ -300,13 +302,13 @@ if WITH_AMD_GPU_VERSION
 endif
 
 if WITH_AMD_RCCL
-  libelpa@SUFFIX@_private_la_SOURCES += src/GPU/ROCm/rcclFunctions.hip
+  libelpa_private_la_SOURCES += src/GPU/ROCm/rcclFunctions.hip
 endif
 
 
 if WITH_SYCL_GPU_VERSION
-  libelpa@SUFFIX@_private_la_CXXFLAGS = $(AM_CXXFLAGS) -Isrc
-  libelpa@SUFFIX@_private_la_SOURCES += \
+  libelpa_private_la_CXXFLAGS = $(AM_CXXFLAGS) -Isrc
+  libelpa_private_la_SOURCES += \
   src/GPU/SYCL/elpa_index_sycl_gpu.cpp \
   src/GPU/SYCL/elpa_explicit_name_sycl_gpu.cpp \
   src/GPU/SYCL/syclCommon.cpp \
@@ -328,430 +330,430 @@ if WITH_SYCL_GPU_VERSION
 endif
 
 if WITH_ONEAPI_ONECCL
-  libelpa@SUFFIX@_private_la_SOURCES += src/GPU/SYCL/onecclFunctions.cpp
+  libelpa_private_la_SOURCES += src/GPU/SYCL/onecclFunctions.cpp
 endif
 
 if WITH_GPU_AWARE_MPICCL
-  libelpa@SUFFIX@_private_la_SOURCES += src/GPU/GPU_AWARE_MPI/mpicclFunctions.cpp
+  libelpa_private_la_SOURCES += src/GPU/GPU_AWARE_MPI/mpicclFunctions.cpp
 endif
 
 if WITH_OPENMP_OFFLOAD_GPU_VERSION
-  libelpa@SUFFIX@_private_la_SOURCES += src/GPU/OpenMP/elpa_index_openmp_offload_gpu.cpp src/GPU/OpenMP/openmpOffloadFunctions.cpp
+  libelpa_private_la_SOURCES += src/GPU/OpenMP/elpa_index_openmp_offload_gpu.cpp src/GPU/OpenMP/openmpOffloadFunctions.cpp
 endif
 
 
 if !WITH_MPI
-  libelpa@SUFFIX@_private_la_SOURCES += src/helpers/mod_time_c.F90
+  libelpa_private_la_SOURCES += src/helpers/mod_time_c.F90
 if !HAVE_DETAILED_TIMINGS
-  libelpa@SUFFIX@_private_la_SOURCES += src/ftimings/time.c
+  libelpa_private_la_SOURCES += src/ftimings/time.c
 endif
 endif
 
 
 if HAVE_HETEROGENOUS_CLUSTER_SUPPORT
-  libelpa@SUFFIX@_private_la_SOURCES +=  src/helpers/get_cpuid_set.c src/helpers/mod_simd_kernel.F90
+  libelpa_private_la_SOURCES +=  src/helpers/get_cpuid_set.c src/helpers/mod_simd_kernel.F90
 endif
 
 if WITH_REAL_GENERIC_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES +=  src/elpa2/kernels/real.F90
+  libelpa_private_la_SOURCES +=  src/elpa2/kernels/real.F90
 endif
 
 if WITH_COMPLEX_GENERIC_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES +=  src/elpa2/kernels/complex.F90
+  libelpa_private_la_SOURCES +=  src/elpa2/kernels/complex.F90
 endif
 
 if WITH_REAL_GENERIC_SIMPLE_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_simple.F90
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_simple.F90
 endif
 
 if WITH_COMPLEX_GENERIC_SIMPLE_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_simple.F90
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_simple.F90
 endif
 
 if WITH_REAL_GENERIC_SIMPLE_BLOCK4_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_simple_block4.F90
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_simple_block4.F90
 endif
 
 if WITH_REAL_GENERIC_SIMPLE_BLOCK6_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_simple_block6.F90
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_simple_block6.F90
 endif
 
 if WITH_REAL_BGP_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_bgp.f90
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_bgp.f90
 endif
 
 if WITH_REAL_BGQ_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_bgq.f90
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_bgq.f90
 endif
 
 if WITH_REAL_SSE_ASSEMBLY_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/asm_x86_64_double_precision.s
+  libelpa_private_la_SOURCES += src/elpa2/kernels/asm_x86_64_double_precision.s
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/asm_x86_64_single_precision.s
+  libelpa_private_la_SOURCES += src/elpa2/kernels/asm_x86_64_single_precision.s
 endif
 
 else
 if WITH_COMPLEX_SSE_ASSEMBLY_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/asm_x86_64_double_precision.s
+  libelpa_private_la_SOURCES += src/elpa2/kernels/asm_x86_64_double_precision.s
 if WANT_SINGLE_PRECISION_COMPLEX
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/asm_x86_64_single_precision.s
+  libelpa_private_la_SOURCES += src/elpa2/kernels/asm_x86_64_single_precision.s
 endif
 endif
 endif
 
 if WITH_REAL_SPARC64_BLOCK2_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sparc64_2hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sparc64_2hv_double_precision.c
 #if WANT_SINGLE_PRECISION_REAL
-#  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sparc64_2hv_single_precision.c
+#  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sparc64_2hv_single_precision.c
 #endif
 endif
 
 if WITH_REAL_NEON_ARCH64_BLOCK2_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_neon_arch64_2hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_neon_arch64_2hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_neon_arch64_2hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_neon_arch64_2hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_VSX_BLOCK2_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_vsx_2hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_vsx_2hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_vsx_2hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_vsx_2hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_SSE_BLOCK2_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sse_2hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sse_2hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sse_2hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sse_2hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_AVX_BLOCK2_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_avx_2hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_avx_2hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_avx_2hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_avx_2hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_AVX2_BLOCK2_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_avx2_2hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_avx2_2hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_avx2_2hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_avx2_2hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_AVX512_BLOCK2_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_avx512_2hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_avx512_2hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_avx512_2hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_avx512_2hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_SVE128_BLOCK2_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sve128_2hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sve128_2hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sve128_2hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sve128_2hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_SVE256_BLOCK2_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sve256_2hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sve256_2hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sve256_2hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sve256_2hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_SVE512_BLOCK2_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sve512_2hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sve512_2hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sve512_2hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sve512_2hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_SPARC64_BLOCK4_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sparc64_4hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sparc64_4hv_double_precision.c
 #if WANT_SINGLE_PRECISION_REAL
-#  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sparc64_4hv_single_precision.c
+#  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sparc64_4hv_single_precision.c
 #endif
 endif
 
 if WITH_REAL_NEON_ARCH64_BLOCK4_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_neon_arch64_4hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_neon_arch64_4hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_neon_arch64_4hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_neon_arch64_4hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_VSX_BLOCK4_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_vsx_4hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_vsx_4hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_vsx_4hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_vsx_4hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_SSE_BLOCK4_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sse_4hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sse_4hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sse_4hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sse_4hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_AVX_BLOCK4_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_avx_4hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_avx_4hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_avx_4hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_avx_4hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_AVX2_BLOCK4_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_avx2_4hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_avx2_4hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_avx2_4hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_avx2_4hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_AVX512_BLOCK4_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_avx512_4hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_avx512_4hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_avx512_4hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_avx512_4hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_SVE128_BLOCK4_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sve128_4hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sve128_4hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sve128_4hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sve128_4hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_SVE256_BLOCK4_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sve256_4hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sve256_4hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sve256_4hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sve256_4hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_SVE512_BLOCK4_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sve512_4hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sve512_4hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sve512_4hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sve512_4hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_SPARC64_BLOCK6_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sparc64_6hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sparc64_6hv_double_precision.c
 #if WANT_SINGLE_PRECISION_REAL
-#  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sparc64_6hv_single_precision.c
+#  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sparc64_6hv_single_precision.c
 #endif
 endif
 
 if WITH_REAL_NEON_ARCH64_BLOCK6_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_neon_arch64_6hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_neon_arch64_6hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_neon_arch64_6hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_neon_arch64_6hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_VSX_BLOCK6_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_vsx_6hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_vsx_6hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_vsx_6hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_vsx_6hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_SSE_BLOCK6_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sse_6hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sse_6hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sse_6hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sse_6hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_AVX_BLOCK6_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_avx_6hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_avx_6hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_avx_6hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_avx_6hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_AVX2_BLOCK6_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_avx2_6hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_avx2_6hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_avx2_6hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_avx2_6hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_AVX512_BLOCK6_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_avx512_6hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_avx512_6hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_avx512_6hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_avx512_6hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_SVE128_BLOCK6_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sve128_6hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sve128_6hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sve128_6hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sve128_6hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_SVE256_BLOCK6_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sve256_6hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sve256_6hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sve256_6hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sve256_6hv_single_precision.c
 endif
 endif
 
 if WITH_REAL_SVE512_BLOCK6_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sve512_6hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sve512_6hv_double_precision.c
 if WANT_SINGLE_PRECISION_REAL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/real_sve512_6hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/real_sve512_6hv_single_precision.c
 endif
 endif
 
 #if WITH_COMPLEX_SPARC64_BLOCK1_KERNEL
-#  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_sparc64_1hv_double_precision.c
+#  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_sparc64_1hv_double_precision.c
 #if WANT_SINGLE_PRECISION_COMPLEX
-#  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_sparc64_1hv_single_precision.c
+#  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_sparc64_1hv_single_precision.c
 #endif
 #endif
 #
 #if WITH_COMPLEX_VSX_BLOCK1_KERNEL
-#  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_vsx_1hv_double_precision.c
+#  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_vsx_1hv_double_precision.c
 #if WANT_SINGLE_PRECISION_COMPLEX
-#  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_vsx_1hv_single_precision.c
+#  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_vsx_1hv_single_precision.c
 #endif
 #endif
 
 if WITH_COMPLEX_SSE_BLOCK1_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_sse_1hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_sse_1hv_double_precision.c
 if WANT_SINGLE_PRECISION_COMPLEX
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_sse_1hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_sse_1hv_single_precision.c
 endif
 endif
 
 if WITH_COMPLEX_NEON_ARCH64_BLOCK1_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_neon_arch64_1hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_neon_arch64_1hv_double_precision.c
 if WANT_SINGLE_PRECISION_COMPLEX
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_neon_arch64_1hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_neon_arch64_1hv_single_precision.c
 endif
 endif
 
 if WITH_COMPLEX_AVX_BLOCK1_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_avx_1hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_avx_1hv_double_precision.c
 if WANT_SINGLE_PRECISION_COMPLEX
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_avx_1hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_avx_1hv_single_precision.c
 endif
 endif
 
 if WITH_COMPLEX_AVX2_BLOCK1_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_avx2_1hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_avx2_1hv_double_precision.c
 if WANT_SINGLE_PRECISION_COMPLEX
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_avx2_1hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_avx2_1hv_single_precision.c
 endif
 endif
 
 if WITH_COMPLEX_AVX512_BLOCK1_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_avx512_1hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_avx512_1hv_double_precision.c
 if WANT_SINGLE_PRECISION_COMPLEX
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_avx512_1hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_avx512_1hv_single_precision.c
 endif
 endif
 
 if WITH_COMPLEX_SVE128_BLOCK1_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_sve128_1hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_sve128_1hv_double_precision.c
 if WANT_SINGLE_PRECISION_COMPLEX
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_sve128_1hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_sve128_1hv_single_precision.c
 endif
 endif
 
 if WITH_COMPLEX_SVE256_BLOCK1_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_sve256_1hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_sve256_1hv_double_precision.c
 if WANT_SINGLE_PRECISION_COMPLEX
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_sve256_1hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_sve256_1hv_single_precision.c
 endif
 endif
 
 if WITH_COMPLEX_SVE512_BLOCK1_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_sve512_1hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_sve512_1hv_double_precision.c
 if WANT_SINGLE_PRECISION_COMPLEX
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_sve512_1hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_sve512_1hv_single_precision.c
 endif
 endif
 
 #if WITH_COMPLEX_SPARC64_BLOCK2_KERNEL
-#  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_sparc64_2hv_double_precision.c
+#  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_sparc64_2hv_double_precision.c
 #if WANT_SINGLE_PRECISION_COMPLEX
-#  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_sparc64_2hv_single_precision.c
+#  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_sparc64_2hv_single_precision.c
 #endif
 #endif
 #
 #if WITH_COMPLEX_VSX_BLOCK2_KERNEL
-#  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_vsx_2hv_double_precision.c
+#  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_vsx_2hv_double_precision.c
 #if WANT_SINGLE_PRECISION_COMPLEX
-#  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_vsx_2hv_single_precision.c
+#  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_vsx_2hv_single_precision.c
 #endif
 #endif
 
 if WITH_COMPLEX_SSE_BLOCK2_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_sse_2hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_sse_2hv_double_precision.c
 if WANT_SINGLE_PRECISION_COMPLEX
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_sse_2hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_sse_2hv_single_precision.c
 endif
 endif
 
 if WITH_COMPLEX_NEON_ARCH64_BLOCK2_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_neon_arch64_2hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_neon_arch64_2hv_double_precision.c
 if WANT_SINGLE_PRECISION_COMPLEX
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_neon_arch64_2hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_neon_arch64_2hv_single_precision.c
 endif
 endif
 
 if WITH_COMPLEX_AVX_BLOCK2_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_avx_2hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_avx_2hv_double_precision.c
 if WANT_SINGLE_PRECISION_COMPLEX
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_avx_2hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_avx_2hv_single_precision.c
 endif
 endif
 
 if WITH_COMPLEX_AVX2_BLOCK2_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_avx2_2hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_avx2_2hv_double_precision.c
 if WANT_SINGLE_PRECISION_COMPLEX
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_avx2_2hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_avx2_2hv_single_precision.c
 endif
 endif
 
 if WITH_COMPLEX_AVX512_BLOCK2_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_avx512_2hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_avx512_2hv_double_precision.c
 if WANT_SINGLE_PRECISION_COMPLEX
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_avx512_2hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_avx512_2hv_single_precision.c
 endif
 endif
 
 if WITH_COMPLEX_SVE128_BLOCK2_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_sve128_2hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_sve128_2hv_double_precision.c
 if WANT_SINGLE_PRECISION_COMPLEX
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_sve128_2hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_sve128_2hv_single_precision.c
 endif
 endif
 
 if WITH_COMPLEX_SVE256_BLOCK2_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_sve256_2hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_sve256_2hv_double_precision.c
 if WANT_SINGLE_PRECISION_COMPLEX
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_sve256_2hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_sve256_2hv_single_precision.c
 endif
 endif
 
 if WITH_COMPLEX_SVE512_BLOCK2_KERNEL
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_sve512_2hv_double_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_sve512_2hv_double_precision.c
 if WANT_SINGLE_PRECISION_COMPLEX
-  libelpa@SUFFIX@_private_la_SOURCES += src/elpa2/kernels/complex_sve512_2hv_single_precision.c
+  libelpa_private_la_SOURCES += src/elpa2/kernels/complex_sve512_2hv_single_precision.c
 endif
 endif
 
 
 if STORE_BUILD_CONFIG
-  libelpa@SUFFIX@_private_la_SOURCES += src/helpers/print_build_config.c
+  libelpa_private_la_SOURCES += src/helpers/print_build_config.c
 endif
 
 # rule for ROCm files
@@ -769,13 +771,24 @@ LTCCASCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=compile $(CCAS) $(AM_CCASFLAGS) \
 	$(CCASFLAGS)
 
+
+# GNU make is already required. Keep ISA flags local to the kernel objects,
+# including when the caller supplies ordinary optimization/hardening CFLAGS.
+$(patsubst %.c,%.lo,$(filter src/elpa2/kernels/real_sse_%.c src/elpa2/kernels/complex_sse_%.c,$(libelpa_private_la_SOURCES))): AM_CFLAGS += $(ELPA_SSE_CFLAGS)
+$(patsubst %.c,%.lo,$(filter src/elpa2/kernels/real_avx_%.c src/elpa2/kernels/complex_avx_%.c,$(libelpa_private_la_SOURCES))): AM_CFLAGS += $(ELPA_AVX_CFLAGS)
+$(patsubst %.c,%.lo,$(filter src/elpa2/kernels/real_avx2_%.c src/elpa2/kernels/complex_avx2_%.c,$(libelpa_private_la_SOURCES))): AM_CFLAGS += $(ELPA_AVX2_CFLAGS)
+$(patsubst %.c,%.lo,$(filter src/elpa2/kernels/real_avx512_%.c src/elpa2/kernels/complex_avx512_%.c,$(libelpa_private_la_SOURCES))): AM_CFLAGS += $(ELPA_AVX512_CFLAGS)
+$(patsubst %.c,%.lo,$(filter src/elpa2/kernels/real_vsx_%.c src/elpa2/kernels/complex_vsx_%.c,$(libelpa_private_la_SOURCES))): AM_CFLAGS += $(ELPA_VSX_CFLAGS)
+$(patsubst %.c,%.lo,$(filter src/elpa2/kernels/real_sve128_%.c src/elpa2/kernels/complex_sve128_%.c,$(libelpa_private_la_SOURCES))): AM_CFLAGS += $(ELPA_SVE128_CFLAGS)
+$(patsubst %.c,%.lo,$(filter src/elpa2/kernels/real_sve256_%.c src/elpa2/kernels/complex_sve256_%.c,$(libelpa_private_la_SOURCES))): AM_CFLAGS += $(ELPA_SVE256_CFLAGS)
+$(patsubst %.c,%.lo,$(filter src/elpa2/kernels/real_sve512_%.c src/elpa2/kernels/complex_sve512_%.c,$(libelpa_private_la_SOURCES))): AM_CFLAGS += $(ELPA_SVE512_CFLAGS)
+
 include generated_headers.am
 BUILT_SOURCES = $(generated_headers)
 
 # install public headers and Fortran modules files in the include/ dir
-elpa_includedir = $(includedir)/elpa@SUFFIX@-@PACKAGE_VERSION@
-nobase_elpa_include_HEADERS = \
-  $(wildcard modules/*) \
+elpa_includedir = $(includedir)/elpa
+elpa_include_HEADERS = \
   src/helpers/lapack_interfaces.h \
   src/helpers/scalapack_interfaces.h \
   elpa/elpa_simd_constants.h \
@@ -785,12 +798,20 @@ nobase_elpa_include_HEADERS = \
 
 
 # headers generated during configure
-nobase_nodist_elpa_include_HEADERS = \
+nodist_elpa_include_HEADERS = \
   elpa/elpa_version.h \
   elpa/elpa_constants.h \
   elpa/elpa_generated.h \
   elpa/elpa_generated_c_api.h \
   elpa/elpa_configured_options.h
+
+elpa_fmoddir = @ELPA_FMODDIR@
+nodist_elpa_fmod_DATA = modules/elpa.mod modules/elpa_api.mod modules/elpa_constants.mod
+
+# These are compiler outputs, not independent source files. In particular,
+# make install from a clean build must finish the public library first.
+$(nodist_elpa_fmod_DATA): libelpa_public.la
+	@test -f $@
 
 dist_man_MANS = \
   man/elpa2_print_kernels.1 \
@@ -829,31 +850,32 @@ dist_man_MANS = \
   man/elpa_autotune_deallocate.3 \
   man/elpa_uninit.3
 
-dist_doc_DATA = README.md CONTRIBUTING.md LICENSE Changelog COPYING/COPYING COPYING/gpl.txt COPYING/lgpl.txt documentation/INSTALL.md \
+dist_doc_DATA = documentation/AUTOTOOLS.md README.md CONTRIBUTING.md LICENSE Changelog COPYING/COPYING COPYING/gpl.txt COPYING/lgpl.txt documentation/INSTALL.md \
 	       documentation/PERFORMANCE_TUNING.md documentation/USERS_GUIDE.md  \
 	       documentation/plots/mpi_elpa1.png documentation/plots/mpi_elpa2.png
 
 # pkg-config stuff
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = @PKG_CONFIG_FILE@
+pkgconfig_DATA = elpa.pc
 
 # programs
 if BUILD_FUGAKU
 bin_PROGRAMS =
 else
 bin_PROGRAMS = \
-  elpa2_print_kernels@SUFFIX@
+  elpa2_print_kernels
 endif
 noinst_PROGRAMS =
 check_SCRIPTS =
 
-test_program_ldadd = libelpatest@SUFFIX@.la libelpa@SUFFIX@.la
+test_program_ldadd = libelpatest.la libelpa.la $(ELPA_MATH_LIBS)
 test_program_fcflags = $(AM_FCFLAGS) $(FC_MODOUT)test_modules $(FC_MODINC)test_modules $(FC_MODINC)modules $(FC_MODINC)private_modules
 
 # library with shared sources for the test files
-noinst_LTLIBRARIES += libelpatest@SUFFIX@.la
-libelpatest@SUFFIX@_la_FCFLAGS = $(test_program_fcflags)
-libelpatest@SUFFIX@_la_SOURCES = \
+noinst_LTLIBRARIES += libelpatest.la
+libelpatest_la_LIBADD = libelpa.la
+libelpatest_la_FCFLAGS = $(test_program_fcflags)
+libelpatest_la_SOURCES = \
   test/shared/tests_variable_definitions.F90 \
   test/shared/mod_tests_scalapack_interfaces.F90 \
   test/shared/mod_tests_blas_interfaces.F90 \
@@ -869,45 +891,45 @@ libelpatest@SUFFIX@_la_SOURCES = \
   test/shared/test_output_type.F90
 
 if WITH_NVIDIA_GPU_VERSION
-libelpatest@SUFFIX@_la_SOURCES += \
+libelpatest_la_SOURCES += \
   test/shared/GPU/CUDA/test_cuda.F90 \
   test/shared/GPU/CUDA/test_cudaFunctions.cu
 endif
 
 if WITH_AMD_GPU_VERSION
-libelpatest@SUFFIX@_la_SOURCES += \
+libelpatest_la_SOURCES += \
   test/shared/GPU/ROCm/test_hip.F90 \
   test/shared/GPU/ROCm/test_rocmFunctions.hip
 endif
 
 if WITH_SYCL_GPU_VERSION
-libelpatest@SUFFIX@_la_SOURCES += \
+libelpatest_la_SOURCES += \
   test/shared/GPU/SYCL/test_sycl.F90 \
   test/shared/GPU/SYCL/test_syclFunctions.cpp
 endif
 
 if WITH_ONEAPI_ONECCL
-libelpatest@SUFFIX@_la_SOURCES += \
+libelpatest_la_SOURCES += \
   test/shared/test_oneccl_init_wrapper.F90 \
   test/shared/test_oneccl_init.cpp
 endif
 
 if WITH_SCALAPACK_TESTS
-libelpatest@SUFFIX@_la_SOURCES += \
+libelpatest_la_SOURCES += \
   test/shared/test_scalapack.F90
 endif
 
 if HAVE_REDIRECT
-libelpatest@SUFFIX@_la_SOURCES += \
+libelpatest_la_SOURCES += \
   test/shared/test_redir.c \
   test/shared/test_redirect.F90
 endif
 
 if BUILD_FUGAKU
 else
-elpa2_print_kernels@SUFFIX@_SOURCES = src/elpa2/elpa2_print_kernels.F90
-elpa2_print_kernels@SUFFIX@_LDADD = libelpa@SUFFIX@.la
-elpa2_print_kernels@SUFFIX@_FCFLAGS = $(AM_FCFLAGS) $(FC_MODINC)modules
+elpa2_print_kernels_SOURCES = src/elpa2/elpa2_print_kernels.F90
+elpa2_print_kernels_LDADD = libelpa.la
+elpa2_print_kernels_FCFLAGS = $(AM_FCFLAGS) $(FC_MODINC)modules
 endif
 
 include test_programs.am
@@ -915,38 +937,38 @@ include test_programs.am
 #include test_programs_manual.am
 
 if BUILD_EXTRA_TESTS
-noinst_PROGRAMS += validate_double_instance@SUFFIX@
-check_SCRIPTS += validate_double_instance@SUFFIX@_default.sh
-validate_double_instance@SUFFIX@_SOURCES = test/Fortran/elpa2/double_instance.F90
-validate_double_instance@SUFFIX@_LDADD = $(test_program_ldadd)
-validate_double_instance@SUFFIX@_FCFLAGS = $(AM_FCFLAGS) $(FC_MODINC)test_modules $(FC_MODINC)modules $(FC_MODINC)private_modules
+noinst_PROGRAMS += validate_double_instance
+check_SCRIPTS += validate_double_instance_default.sh
+validate_double_instance_SOURCES = test/Fortran/elpa2/double_instance.F90
+validate_double_instance_LDADD = $(test_program_ldadd)
+validate_double_instance_FCFLAGS = $(AM_FCFLAGS) $(FC_MODINC)test_modules $(FC_MODINC)modules $(FC_MODINC)private_modules
 
-noinst_PROGRAMS += validate_real_2stage_banded@SUFFIX@
-check_SCRIPTS += validate_real_2stage_banded@SUFFIX@_default.sh
-validate_real_2stage_banded@SUFFIX@_SOURCES = test/Fortran/elpa2/real_2stage_banded.F90
-validate_real_2stage_banded@SUFFIX@_LDADD = $(test_program_ldadd)
-validate_real_2stage_banded@SUFFIX@_FCFLAGS = $(AM_FCFLAGS) $(FC_MODINC)test_modules $(FC_MODINC)modules $(FC_MODINC)private_modules
+noinst_PROGRAMS += validate_real_2stage_banded
+check_SCRIPTS += validate_real_2stage_banded_default.sh
+validate_real_2stage_banded_SOURCES = test/Fortran/elpa2/real_2stage_banded.F90
+validate_real_2stage_banded_LDADD = $(test_program_ldadd)
+validate_real_2stage_banded_FCFLAGS = $(AM_FCFLAGS) $(FC_MODINC)test_modules $(FC_MODINC)modules $(FC_MODINC)private_modules
 
-noinst_PROGRAMS += validate_complex_2stage_banded@SUFFIX@
-check_SCRIPTS += validate_complex_2stage_banded@SUFFIX@_default.sh
-validate_complex_2stage_banded@SUFFIX@_SOURCES = test/Fortran/elpa2/complex_2stage_banded.F90
-validate_complex_2stage_banded@SUFFIX@_LDADD = $(test_program_ldadd)
-validate_complex_2stage_banded@SUFFIX@_FCFLAGS = $(AM_FCFLAGS) $(FC_MODINC)test_modules $(FC_MODINC)modules $(FC_MODINC)private_modules
+noinst_PROGRAMS += validate_complex_2stage_banded
+check_SCRIPTS += validate_complex_2stage_banded_default.sh
+validate_complex_2stage_banded_SOURCES = test/Fortran/elpa2/complex_2stage_banded.F90
+validate_complex_2stage_banded_LDADD = $(test_program_ldadd)
+validate_complex_2stage_banded_FCFLAGS = $(AM_FCFLAGS) $(FC_MODINC)test_modules $(FC_MODINC)modules $(FC_MODINC)private_modules
 
 if WANT_SINGLE_PRECISION_REAL
-noinst_PROGRAMS += validate_single_real_2stage_banded@SUFFIX@
-check_SCRIPTS += validate_single_real_2stage_banded@SUFFIX@_default.sh
-validate_single_real_2stage_banded@SUFFIX@_SOURCES = test/Fortran/elpa2/single_real_2stage_banded.F90
-validate_single_real_2stage_banded@SUFFIX@_LDADD = $(test_program_ldadd)
-validate_single_real_2stage_banded@SUFFIX@_FCFLAGS = $(AM_FCFLAGS) $(FC_MODINC)test_modules $(FC_MODINC)modules $(FC_MODINC)private_modules
+noinst_PROGRAMS += validate_single_real_2stage_banded
+check_SCRIPTS += validate_single_real_2stage_banded_default.sh
+validate_single_real_2stage_banded_SOURCES = test/Fortran/elpa2/single_real_2stage_banded.F90
+validate_single_real_2stage_banded_LDADD = $(test_program_ldadd)
+validate_single_real_2stage_banded_FCFLAGS = $(AM_FCFLAGS) $(FC_MODINC)test_modules $(FC_MODINC)modules $(FC_MODINC)private_modules
 endif
 
 if WANT_SINGLE_PRECISION_COMPLEX
-noinst_PROGRAMS += validate_single_complex_2stage_banded@SUFFIX@
-check_SCRIPTS += validate_single_complex_2stage_banded@SUFFIX@_default.sh
-validate_single_complex_2stage_banded@SUFFIX@_SOURCES = test/Fortran/elpa2/single_complex_2stage_banded.F90
-validate_single_complex_2stage_banded@SUFFIX@_LDADD = $(test_program_ldadd)
-validate_single_complex_2stage_banded@SUFFIX@_FCFLAGS = $(AM_FCFLAGS) $(FC_MODINC)test_modules $(FC_MODINC)modules $(FC_MODINC)private_modules
+noinst_PROGRAMS += validate_single_complex_2stage_banded
+check_SCRIPTS += validate_single_complex_2stage_banded_default.sh
+validate_single_complex_2stage_banded_SOURCES = test/Fortran/elpa2/single_complex_2stage_banded.F90
+validate_single_complex_2stage_banded_LDADD = $(test_program_ldadd)
+validate_single_complex_2stage_banded_FCFLAGS = $(AM_FCFLAGS) $(FC_MODINC)test_modules $(FC_MODINC)modules $(FC_MODINC)private_modules
 endif
 
 endif
@@ -962,7 +984,7 @@ pyelpa_LTLIBRARIES =
 endif
 nodist_wrapper_la_SOURCES = python/pyelpa/wrapper.c
 wrapper_la_LDFLAGS = -module -avoid-version -shared $(AM_LDFLAGS)
-wrapper_la_LIBADD = libelpa@SUFFIX@.la
+wrapper_la_LIBADD = libelpa.la
 wrapper_la_CFLAGS = $(PYTHON_INCLUDE) $(NUMPY_INCLUDE) $(AM_CFLAGS)
 
 python/pyelpa/wrapper.c: python/pyelpa/wrapper.pyx
@@ -1046,16 +1068,13 @@ clean-local:
 	-rm -rf complex_2stage*.sh
 	-rm -rf single_complex_2stage*.sh
 	-rm -rf single_real_2stage*.sh
-	-rm -rf double_instance_onenode*.sh
+	-rm -rf double_instance*.sh
 	-rm -rf test_*.sh
 	-rm -rf $(generated_headers)
 	-rm -rf *.sh.trs
 	-rm -rf *.sh.log
 
 distclean-local:
-	-rm -rf ./m4
-	-rm -rf ./src
-	-rm -rf ./test
 	-rm -rf ./modules
 	-rm -rf ./private_modules
 	-rm -rf ./test_modules
@@ -1071,13 +1090,23 @@ distclean-local:
 	-rm -rf complex_2stage*.sh
 	-rm -rf single_complex_2stage*.sh
 	-rm -rf single_real_2stage*.sh
-	-rm -rf double_instance_onenode*.sh
+	-rm -rf double_instance*.sh
 	-rm -rf test_*.sh
 	-rm -rf $(generated_headers)
 	-rm -rf *.sh.trs
 	-rm -rf *.sh.log
 
+# Developer-only tests; ordinary release builds do not require Python for these.
+check-build-system: FORCE_BUILD_SYSTEM_CHECK
+	$(srcdir)/test/autotools/test_math.py
+
+FORCE_BUILD_SYSTEM_CHECK:
+
 EXTRA_DIST = \
+  test/autotools/test_math.py \
+  test/autotools/test_install.sh \
+  test/autotools/installed_c.c \
+  test/autotools/installed_fortran.F90 \
   elpa.spec \
   elpa/elpa.h \
   elpa/elpa_generic.h \
@@ -1286,7 +1315,7 @@ libtool: $(LIBTOOL_DEPS)
 
 # $1  Object name
 define require_elpa_lib
-$1: libelpa@SUFFIX@.la
+$1: libelpa.la
 
 endef
 $(foreach p,$(bin_PROGRAMS) $(noinst_PROGRAMS),$(foreach o,$($p_OBJECTS),$(eval $(call require_elpa_lib,$o))))
